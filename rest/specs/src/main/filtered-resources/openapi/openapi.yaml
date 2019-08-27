@@ -12,7 +12,7 @@ info:
   title: Security Markings API
   description: >
     The Security Markings API is defined to provide services with the ability to
-    acquire, modify, and validate security markings.
+    acquire and validate security markings.
   contact:
     name: Connexta
   license:
@@ -23,20 +23,22 @@ servers:
   - url: ${rest.server.url}
 
 paths:
-  /system:
+  /system/markings:
     get:
-      summary: Endpoint for acquiring the system high classification.
+      summary: Endpoint for acquiring the system high security markings.
       description: >
-        A system can use the system classification endpoint to acquire the
-        system high classification.
-      operationId: systemClassification
+        A client can use the system markings endpoint to acquire the
+        system high security markings.
+      operationId: systemMarkings
       tags:
-        - systemClassification
+        - systemMarkings
       parameters:
         - $ref: '#/components/parameters/Accept-Version'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/SystemMarkingsOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -45,15 +47,70 @@ paths:
           $ref: '#/components/responses/NotImplemented'
         'default':
           $ref: '#/components/responses/DefaultError'
+  /validate:
+    post:
+      summary: Endpoint for validating security markings.
+      description: >
+        The provided security markings will be validated and
+        checked against the system high markings.
+      operationId: validate
+      tags:
+        - validate
+      parameters:
+        - $ref: '#/components/parameters/Accept-Version'
+      requestBody:
+        required: true
+        description: >
+          Contains the security markings to be validated.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityMarkingsWithOverwrites'
+      responses:
+        '204':
+          $ref: '#/components/responses/Valid'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/InvalidMarkings'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+        'default':
+          $ref: '#/components/responses/DefaultError'
 
 components:
   responses:
-    Ok:
+    SystemMarkingsOk:
       description: >
-        The security markings request was accepted and processed.
+        The system high security markings were successfully retrieved.
       headers:
         'Content-Version':
           $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SecurityMarkings'
+    Valid:
+      description: >
+        The security markings in the given request request were
+        successfully validated.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+    InvalidMarkings:
+      description: >
+        The provided security markings are invalid.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InvalidMarkings'
     Unauthorized:
       description: >
         The client could not be authenticated.
@@ -140,6 +197,36 @@ components:
       maxLength: 80
       pattern: '^([1-9]([0-9]+)?)\.(0|([1-9]([0-9]+)?))(\.(0|([1-9]([0-9]+)?))(-.*)?)?$'
       example: 1.2, 2.4.3, 0.2.5-SNAPSHOT
+    SecurityMarking:
+      description: Security marking.
+      type: object
+      required:
+        - markingName
+        - markingValue
+      properties:
+        markingName:
+          description: Name of the security marking.
+          type: string
+          example: Classification
+        markingValue:
+          description: Value of the security marking.
+          type: string
+          example: U
+    SecurityMarkings:
+      description: Security markings.
+      type: array
+      items:
+        $ref: '#/components/schemas/SecurityMarking'
+    SecurityMarkingsWithOverwrites:
+      description: Security markings and overwriting security markings.
+      type: object
+      required:
+        - securityMarkings
+      properties:
+        securityMarkings:
+          $ref: '#/components/schemas/SecurityMarkings'
+        overwriteMarkings:
+          $ref: '#/components/schemas/SecurityMarkings'
     ErrorMessage:
       description: Error message information.
       type: object
@@ -158,18 +245,19 @@ components:
         path:
           type: string
           description: The path for the REST request that generated this error.
-          example: /system/classification
+          example: /system/markings
         status:
           type: integer
           format: int32
           description: The corresponding HTTP status code.
-          example: 200
+          example: 500
         code:
           type: integer
           format: int32
           description: >
             An optional more specific code corresponding to the error (specific codes need to be
             documented).
+          example: 0
         error:
           type: string
           description: The corresponding HTTP reason phrase.
@@ -179,9 +267,46 @@ components:
           type: string
           description: Specific information about the error.
           minLength: 1
-          example: Validation failed for object='systemInfo'.
+          example: Security markings validation failed.
         details:
           type: array
           items:
             type: string
           description: Optional detailed information about the error.
+          example: [
+            Security markings not provided.,
+            Provided markings were not compatible with system high markings.
+          ]
+    InvalidMarking:
+      description: Invalid security marking.
+      type: object
+      required:
+        - markingName
+        - markingValue
+        - failure
+      properties:
+        markingName:
+          description: Name of the invalid security marking.
+          type: string
+          example: Classification
+        markingValue:
+          description: Value of the invalid security marking.
+          type: string
+          example: S
+        failure:
+          description: Cause of invalidation.
+          type: string
+          example: Provided classification (S) is higher than the system high classification (U).
+    InvalidMarkings:
+      description: Invalid security markings.
+      type: object
+      required:
+        - errorMessage
+        - invalidMarkings
+      properties:
+        errorMessage:
+          $ref: '#/components/schemas/ErrorMessage'
+        invalidMarkings:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvalidMarking'
