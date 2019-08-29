@@ -1,0 +1,588 @@
+#
+# Copyright (c) 2019 Connexta, LLC
+#
+# Released under the GNU Lesser General Public License version 3; see
+# https://www.gnu.org/licenses/lgpl-3.0.html
+#
+
+openapi: 3.0.2
+
+info:
+  version: ${project.version}
+  title: Security Markings API
+  description: >
+    The Security Markings API is defined to provide services with the ability to
+    correct, validate, and rollup security markings.
+  contact:
+    name: Connexta
+  license:
+    name: GNU Lesser General Public License
+    url: 'http://www.gnu.org/licenses/lgpl.html'
+
+servers:
+  - url: ${rest.server.url}
+
+paths:
+  /validation/validate:
+    post:
+      summary: Validate that the given markings are valid (syntax, comply with the system high markings).
+      description: >
+        Validate that the given markings are valid (syntax, comply with the system high markings).
+      operationId: validate
+      tags:
+        - validate
+      parameters:
+        - $ref: '#/components/parameters/Accept-Version'
+      requestBody:
+        required: true
+        description: Contains the security markings to be validated.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityMarkings'
+      responses:
+        '204':
+          $ref: '#/components/responses/Valid'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/Invalid'
+        '501':
+          $ref: '#/components/responses/NotImplemented'
+        'default':
+          $ref: '#/components/responses/DefaultError'
+#  /validation/compliesWithSystemHigh:
+#    post:
+#      summary: Validate that the given markings comply with the system high markings.
+#      description: >
+#        Validate that the given markings comply with the system high markings.
+#      operationId: compliesWithSystemHigh
+#      tags:
+#        - compliesWithSystemHigh
+#      parameters:
+#        - $ref: '#/components/parameters/Accept-Version'
+#      requestBody:
+#        required: true
+#        description: Contains the security markings to be validated against system high markings.
+#        content:
+#          application/json:
+#            schema:
+#              $ref: '#/components/schemas/SecurityMarkings'
+#      responses:
+#        '204':
+#          $ref: '#/components/responses/Valid'
+#        '400':
+#          $ref: '#/components/responses/BadRequest'
+#        '401':
+#          $ref: '#/components/responses/Unauthorized'
+#        '403':
+#          $ref: '#/components/responses/Forbidden'
+#        '422':
+#          $ref: '#/components/responses/Invalid'
+#        '501':
+#          $ref: '#/components/responses/NotImplemented'
+#        'default':
+#          $ref: '#/components/responses/DefaultError'
+
+components:
+  responses:
+    Valid:
+      description: >
+        The security markings in the given request were successfully validated.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      # TODO added the content element here so the validate endpoint could return an ErrorMessage
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    Invalid:
+      description: >
+        The security markings in the given request were invalid.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    InvalidMarkings:
+      description: >
+        One or more of the provided security markings were invalid.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InvalidSecurityMarkings'
+    Unauthorized:
+      description: >
+        The client could not be authenticated.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    Forbidden:
+      description: >
+        The client does not have permission.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    NotImplemented:
+      description: >
+        The requested API version is not supported and therefore not implemented.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    BadRequest:
+      description: >
+        The client message could not understood by the server due to invalid format or syntax.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+    DefaultError:
+      description: >
+        Any other possible errors not currently known.
+      headers:
+        'Content-Version':
+          $ref: '#/components/headers/ContentVersion'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
+  parameters:
+    Accept-Version:
+      name: Accept-Version
+      in: header
+      description: >
+        The minimal API version that a client using this API will accept
+        responses from.
+      required: true
+      schema:
+        $ref: '#/components/schemas/Version'
+  headers:
+    ContentVersion:
+      description: >
+        The API version used by the server to produce the REST message. The server will accept
+        messages for any minor versions prior to this one.
+      required: true
+      schema:
+        $ref: '#/components/schemas/Version'
+      examples:
+        major.minor:
+          value: '1.2'
+          summary: A released minor version
+        major.minor.patch:
+          value: '1.0.3'
+          summary: A patched version
+        dev:
+          value: '1.2.0-SNAPSHOT'
+          summary: A development version
+  schemas:
+    Version:
+      description: Version number.
+      type: string
+      minLength: 3
+      maxLength: 80
+      pattern: '^([1-9]([0-9]+)?)\.(0|([1-9]([0-9]+)?))(\.(0|([1-9]([0-9]+)?))(-.*)?)?$'
+      example: 1.2, 2.4.3, 0.2.5-SNAPSHOT
+    ErrorMessage:
+      description: Error message information.
+      type: object
+      required:
+        - timestamp
+        - path
+        - status
+        - error
+        - message
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: The server time when the error was generated.
+          example: 2019-05-09T14:47:13.101+0000
+        path:
+          type: string
+          description: The path for the REST request that generated this error.
+          example: /validation/validate
+        status:
+          type: integer
+          format: int32
+          description: The corresponding HTTP status code.
+          example: 500
+        code:
+          type: integer
+          format: int32
+          description: >
+            An optional more specific code corresponding to the error (specific codes need to be
+            documented).
+          example: 0
+        error:
+          type: string
+          description: The corresponding HTTP reason phrase.
+          minLength: 1
+          example: Bad Request
+        message:
+          type: string
+          description: Specific information about the error.
+          minLength: 1
+          example: Security markings validation failed
+        details:
+          type: array
+          items:
+            type: string
+          description: Optional detailed information about the error.
+          example: [
+            No security markings provided,
+            Unexpected field 'Soccer'
+          ]
+    ReasonForInvalidation:
+      description: High level explanation of why the provided markings were deemed invalid.
+      type: string
+      example: Given classification is above the system high classification
+    SecurityMarkings:
+      description: Security markings.
+      type: object
+      properties:
+        ISM:
+          $ref: '#/components/schemas/ISM'
+#        BannerMarkings:
+#          $ref: '#/components/schemas/BannerMarkings'
+    InvalidSecurityMarkings:
+      description: Security markings found to be invalid and reason for invalidation.
+      type: object
+      properties:
+        invalidISM:
+            $ref: '#/components/schemas/InvalidISM'
+#        invalidBannerMarkings:
+#            $ref: '#/components/schemas/InvalidBannerMarkings'
+#    BannerMarkings:
+#      description: Banner markings string, delimited by '//'
+#      type: string
+#      example: U//FOUO
+#    InvalidBannerMarkings:
+#      description: Banner markings string, delimited by '//', and reson for invalidation
+#      type: object
+#      properties:
+#        bannerMarkings:
+#          $ref: '#/components/schemas/BannerMarkings'
+#        reasonForInvalidation:
+#          $ref: '#/components/schemas/ReasonForInvalidation'
+
+    # Begin ISM definitions
+    ISM:
+      description: ISM security markings.
+      type: object
+      properties:
+        atomicEnergyMarkings:
+          $ref: '#/components/schemas/atomicEnergyMarkings'
+        classification:
+          $ref: '#/components/schemas/classification'
+        classificationReason:
+          $ref: '#/components/schemas/classificationReason'
+        classifiedBy:
+          $ref: '#/components/schemas/classifiedBy'
+        compilationReason:
+          $ref: '#/components/schemas/compilationReason'
+        compliesWith:
+          $ref: '#/components/schemas/compliesWith'
+        createDate:
+          $ref: '#/components/schemas/createDate'
+        declassDate:
+          $ref: '#/components/schemas/declassDate'
+        declassEvent:
+          $ref: '#/components/schemas/declassEvent'
+        declassException:
+          $ref: '#/components/schemas/declassException'
+        derivativelyClassifiedBy:
+          $ref: '#/components/schemas/derivativelyClassifiedBy'
+        derivedFrom:
+          $ref: '#/components/schemas/derivedFrom'
+        DESVersion:
+          $ref: '#/components/schemas/DESVersion'
+        displayOnlyTo:
+          $ref: '#/components/schemas/displayOnlyTo'
+        disseminationControls:
+          $ref: '#/components/schemas/disseminationControls'
+        excludeFromRollup:
+          $ref: '#/components/schemas/excludeFromRollup'
+        exemptFrom:
+          $ref: '#/components/schemas/exemptFrom'
+        externalNotice:
+          $ref: '#/components/schemas/externalNotice'
+        FGIsourceOpen:
+          $ref: '#/components/schemas/FGIsourceOpen'
+        FGIsourceProtected:
+          $ref: '#/components/schemas/FGIsourceProtected'
+        hasApproximateMarkings:
+          $ref: '#/components/schemas/hasApproximateMarkings'
+        id:
+          $ref: '#/components/schemas/id'
+        IDReference:
+          $ref: '#/components/schemas/IDReference'
+        ISMCATCESVersion:
+          $ref: '#/components/schemas/ISMCATCESVersion'
+        noAggregation:
+          $ref: '#/components/schemas/noAggregation'
+        nonICmarkings:
+          $ref: '#/components/schemas/nonICmarkings'
+        nonUSControls:
+          $ref: '#/components/schemas/nonUSControls'
+        noticeDate:
+          $ref: '#/components/schemas/noticeDate'
+        noticeReason:
+          $ref: '#/components/schemas/noticeReason'
+        noticeType:
+          $ref: '#/components/schemas/noticeType'
+        ownerProducer:
+          $ref: '#/components/schemas/ownerProducer'
+        joint:
+          $ref: '#/components/schemas/joint'
+        pocType:
+          $ref: '#/components/schemas/pocType'
+        qualifier:
+          $ref: '#/components/schemas/qualifier'
+        releasableTo:
+          $ref: '#/components/schemas/releasableTo'
+        resourceElement:
+          $ref: '#/components/schemas/resourceElement'
+        SARIdentifier:
+          $ref: '#/components/schemas/SARIdentifier'
+        SCIControls:
+          $ref: '#/components/schemas/SCIControls'
+        typeOfExemptedSource:
+          $ref: '#/components/schemas/typeOfExemptedSource'
+        unregisteredNoticeType:
+          $ref: '#/components/schemas/unregisteredNoticeType'
+    InvalidISM:
+      description: ISM security markings and reason for invalidation.
+      type: object
+      properties:
+        ISM:
+          $ref: '#/components/schemas/ISM'
+        reasonForInvalidation:
+          $ref: '#/components/schemas/ReasonForInvalidation'
+
+    # Begin ISM attributes
+    atomicEnergyMarkings:
+      description: >
+        Applicable atomic energy information markings for a document or portion
+      type: string
+      example: RD
+    classification:
+      description: >
+        The highest level of classification applicable to the containing document or portion
+      type: string
+      example: U
+    classificationReason:
+      description: >
+        One or more reason indicators or explanatory text describing the basis for an original classification decision
+      type: string
+      example: Sensitive information crucial for victory
+    classifiedBy:
+      description: >
+        The identity, by name or personal identifier and position title, of the original classification authority for a document
+      type: string
+      example: Colonel Sanders
+    compilationReason:
+      description: >
+        The reason that the classification of the document is more restrictive than the simple roll-up of the marked portions of the document
+      type: string
+      example: TODO
+    compliesWith:
+      description: >
+        The ISM rule sets a document complies with
+      type: string
+      example: USGov
+    createDate:
+      description: >
+        The date when ISM metadata was added or updated
+      type: string
+      example: 20041117
+    declassDate:
+      description: >
+        The specific date when the resource is subject to automatic declassification procedures if not properly exempted from automatic declassification
+      type: string
+      example: 19960131
+    declassEvent:
+      description: >
+        A description of an event upon which the information shall be subject to automatic declassification procedures if not properly exempted from automatic declassification A description of an event upon which the information shall be automatically declassified if not properly exempted from automatic declassification.
+      type: string
+      example: End of conflict
+    declassException:
+      description: >
+        The exemption from automatic declassification that is claimed for a document
+      type: string
+      example: AEA
+    derivativelyClassifiedBy:
+      description: >
+        The identity, by name or personal identifier, of the derivative classification authority
+      type: string
+      example: The power rule derivatively classifies x^2 # TODO replace with a real example
+    derivedFrom:
+      description: >
+        A citation of the authoritative source or sources of the classification markings used in a derivative classification decision for a classified document
+      type: string
+      example: 2x is derived from x^2 # TODO replace with a real example
+    DESVersion:
+      description: >
+        The version number of the specification. This attribute is intended for processing systems to determine the appropriate versions of Schema, Schematron, and CVE values for validation and interpretation of an instance document.
+      type: string
+      example: TODO
+    displayOnlyTo:
+      description: >
+        The set of countries and/or international organizations associated with a “Display Only To” marking
+      type: string
+      example: USA
+    disseminationControls:
+      description: >
+        Applicable dissemination control markings for a document or portion
+      type: string
+      example: FOUO
+    excludeFromRollup:
+      description: >
+        An indicator that an element’s ISM attributes do not contribute to the “rollup” classification of the document
+      type: boolean
+      example: false
+    exemptFrom:
+      description: >
+        Specific exemptions within an ISM rule set that are claimed for a document
+      type: string
+      example: DOD_DISTRO_STATEMENT
+    externalNotice:
+      description: >
+        An indicator that an element contains a security-related notice for information NOT contained in document
+      type: boolean
+      example: false
+    FGIsourceOpen:
+      description: >
+        The set of countries and/or international organizations whose information is derivatively sourced in a document when the source of the information is not concealed (also used for cases when the source is unknown)
+      type: string
+      example: ABW
+    FGIsourceProtected:
+      description: >
+        The set of countries and/or international organizations whose information is derivatively sourced in a document when the source of the information must be concealed
+      type: string
+      example: FGI
+    hasApproximateMarkings:
+      description: >
+        When true, indicates the ISM markings specified are estimated (e.g. system high).
+      type: boolean
+      example: true
+    id:
+      description: >
+        A unique XML identifier used to assign an XML unique identifier to an element, such as a paragraph, note or table.
+      type: string
+      example: TODO
+    IDReference:
+      description: >
+        A cross-reference to a unique identifier used to point from one element to one or more other elements. The value of the attribute must be one or more XML unique identifiers that are the value(s) of id attribute(s) elsewhere in the document.
+      type: string
+      example: TODO
+    ISMCATCESVersion:
+      description: >
+        The version number of the ISMCAT CES used in the document
+      type: string
+      example: TODO
+    noAggregation:
+      description: >
+        When true, an indicator that there is no classification by compilation across any combination of portions extracted from the document.
+      type: boolean
+      example: true
+    nonICmarkings:
+      description: >
+        One or more indicators of an expansion or limitation on the distribution of a document or portion originating from non-intelligence components
+      type: string
+      example: DS
+    nonUSControls:
+      description: >
+        One or more indicators of an expansion or limitation on the distribution of a document or portion originating from non-US components (foreign government or international organization).
+      type: string
+      example: ATOMAL
+    noticeDate:
+      description: >
+        A date associated with a notice (for example, the DoD Distribution notice date)
+      type: string
+      example: 19480108
+    noticeReason:
+      description: >
+        A reason associated with a notice (for example, the DoD Distribution reason)
+      type: string
+      example: TODO
+    noticeType:
+      description: >
+        An indicator that the containing element contains a security-related notice. This attribute is used to categorize which of the required notices is specified in the element. These categories include those described in the Intelligence Community Markings System Register and Manual, as well as additional well-defined and formally recognized security notice types described in other directives, such as US-Person and DoD Distribution. The element could contain any structure that the implementing schema defines, and rendering details are relegated to the implementing schema. The permissible values for this attribute are defined in the ISM Notice CVE: CVEnumISMNotice.xml
+      type: string
+      example: FISA
+    ownerProducer:
+      description: >
+        The set of national governments and/or international organizations that have purview over the containing classification marking.
+      type: string
+      example: USA
+    joint:
+      description: >
+        When true, an indicator that entities in the @ism:ownerProducer attribute are JOINT owners of the resource
+      type: boolean
+      example: false
+    pocType:
+      description: >
+        Indicates that the element specifies a point-of-contact (POC) and the methods with which to contact that individual. As certain POCs are required for different reasons (ICD-710 compliance, DoD Distribution statements, etc), the values for this attribute specify the reason(s) why the POC is provided.
+      type: string
+      example: ICD-710
+    qualifier:
+      description: >
+        A user-defined property used to provide contextual meaning to the AccessProfileValue
+      type: string
+      example: Nintendogs # TODO replace with a real example
+    releasableTo:
+      description: >
+        This attribute is used at both the resource and the portion levels. One or more indicators identifying the country or countries and/or international organization(s) to which classified information may be released based on the determination of an originator in accordance with established foreign disclosure procedures. This element is used in conjunction with the Dissemination Controls element. It is manifested in portion marks and security banners. PERMISSIBLE VALUES The permissible values for this attribute are defined in the Controlled Value Enumeration: CVEnumISMRelTo.xml
+      type: string
+      example: USA
+    resourceElement:
+      description: >
+        This attribute is used to designate which element has the ISM attributes representing the classification for the entire resource. Every document must have at least one element with this indicator as true. It should be rare that a document has more than one. Mainly this would occur in some sort of aggregation schema. In the aggregation case, the first @resourceElement attribute in XML document order is the one used for all constraint rules.
+      type: boolean
+      example: true
+    SARIdentifier:
+      description: >
+        This attribute is used at both the resource and the portion levels. One or more indicators identifying the defense or intelligence programs for which special access is required. It is manifested in portion marks and security banners. PERMISSIBLE VALUES The permissible values for this attribute are defined in the Controlled Value Enumeration: CVEnumISMSAR.xml
+      type: string
+      example: SAR-E for not thinking of a better example # TODO replace with a real example
+    SCIControls:
+      description: >
+        This attribute is used at both the resource and the portion levels. One or more indicators identifying sensitive compartmented information control system(s). It is manifested in portion marks and security banners. PERMISSIBLE VALUES The permissible values for this attribute are defined in the Controlled Value Enumeration: CVEnumISMSCIControls.xml
+      type: string
+      example: BUR
+    typeOfExemptedSource:
+      description: >
+        This attribute is used primarily at the resource level. A declassification marking of a source document that causes the current, derivative document to be exempted from automatic declassification. This element is always used in conjunction with the Date Of Exempted Source element. It is manifested only in the 'Declassify On' line of a document's classification/declassification block. This element is defined as NMTOKENS but ISOO has stated it should be a SINGLE value giving the longest protection. PERMISSIBLE VALUE The permissible value for this attribute is defined in the Implementation Profile Supplement: Value Enumerations in the value set: Source Document Declassification Instruction Marking
+      type: string
+      example: Document
+    unregisteredNoticeType:
+      description: >
+        A notice that is of a category that is not described in the Intelligence Community Markings System Register and Manual and/or is not sufficiently defined to be represented in the Controlled Value Enumeration CVEnumISMNotice.xml. This attribute can be used by specifications that import ISM to represent a wider variety of security-related notices.
+      type: string
+      example: TODO
+    # End ISM definitions
