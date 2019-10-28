@@ -1,0 +1,28 @@
+/*
+ * Copyright (c) 2019 Connexta, LLC
+ *
+ * Released under the GNU Lesser General Public License version 3; see
+ * https://www.gnu.org/licenses/lgpl-3.0.html
+ */
+/* Build Script */
+
+plugins {
+    id "org.openapi.generator"  version "${openApiVersion}"
+}
+
+// generate the openapi spec
+openApiGenerate {
+    inputSpec = "${projectDir}/src/main/filtered-resources/openapi/openapi.yaml"
+    outputDir = "${openApiGeneratedDir}"
+    generatorName = "openapi-yaml"
+}
+
+// add the openapi spec to the created jar
+jar {
+    // need to generate the openapi spec before we can add it to the jar
+    dependsOn tasks.openApiGenerate
+
+    from("${openApiGeneratedDir}") {
+        include "openapi/"
+    }
+}

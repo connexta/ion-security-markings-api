@@ -1,0 +1,48 @@
+/*
+ * Copyright (c) 2019 Connexta, LLC
+ *
+ * Released under the GNU Lesser General Public License version 3; see
+ * https://www.gnu.org/licenses/lgpl-3.0.html
+ */
+/* Build Script */
+
+plugins {
+    id "org.openapi.generator"  version "${openApiVersion}"
+}
+
+configurations {
+    openApiSpec
+}
+
+dependencies {
+    openApiSpec project(":security-markings-api-rest:security-markings-api-rest-specs")
+}
+
+// copy over the openapi spec
+task copyOpenApiSpec(type: Copy) {
+    // need jar from specs project in order to grab the openapi spec
+    dependsOn ":security-markings-api-rest:security-markings-api-rest-specs:assemble"
+
+    from zipTree(configurations.openApiSpec.singleFile).matching {
+        include "openapi/openapi.yaml"
+    }
+    into "$buildDir"
+}
+
+// generate the openapi docs
+openApiGenerate {
+    inputSpec = "${openApiDir}/openapi.yaml"
+    outputDir = "${openApiGeneratedDir}"
+    generatorName = "html" // html2 and dynamic-html generators have problems generating the models at the moment
+    validateSpec = false // openapi spec validation happens in the specs projects
+}
+// need the openapi spec in order to generate the openapi docs
+tasks.openApiGenerate.dependsOn tasks.copyOpenApiSpec
+
+// add openapi docs into resulting jar
+jar {
+    // need to generate the openapi docs before we can add them to the jar
+    dependsOn tasks.openApiGenerate
+
+    from("${openApiGeneratedDir}")
+}

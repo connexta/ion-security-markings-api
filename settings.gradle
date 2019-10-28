@@ -1,0 +1,20 @@
+/*
+ * Copyright (c) 2019 Connexta, LLC
+ *
+ * Released under the GNU Lesser General Public License version 3; see
+ * https://www.gnu.org/licenses/lgpl-3.0.html
+ */
+/* Build Script */
+rootProject.name = "security-markings-api"
+include(":security-markings-api-rest:security-markings-api-rest-specs")
+include(":security-markings-api-rest:security-markings-api-rest-models")
+include(":security-markings-api-rest:security-markings-api-rest-docs")
+include(":security-markings-api-rest:security-markings-api-rest-servers:security-markings-api-rest-servers-spring")
+include(":security-markings-api-rest:security-markings-api-rest-servers")
+include(":security-markings-api-rest")
+project(":security-markings-api-rest:security-markings-api-rest-specs").projectDir = file("rest/specs")
+project(":security-markings-api-rest:security-markings-api-rest-models").projectDir = file("rest/models")
+project(":security-markings-api-rest:security-markings-api-rest-docs").projectDir = file("rest/docs")
+project(":security-markings-api-rest:security-markings-api-rest-servers:security-markings-api-rest-servers-spring").projectDir = file("rest/servers/spring")
+project(":security-markings-api-rest:security-markings-api-rest-servers").projectDir = file("rest/servers")
+project(":security-markings-api-rest").projectDir = file("rest")

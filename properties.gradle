@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2019 Connexta, LLC
+ *
+ * Released under the GNU Lesser General Public License version 3; see
+ * https://www.gnu.org/licenses/lgpl-3.0.html
+ */
+/* Build Script */
+ext {
+    projectGroupId = "com.connexta.security"
+    projectVersion = "0.1.0-SNAPSHOT"
+
+    //packages
+    rootPackage = "com.connexta.security.markings.api"
+    restPackage = "${rootPackage}.rest"
+    restModelsPackage = "${restPackage}.models"
+
+    openApiDir = "${buildDir}/openapi"
+    openApiGeneratedDir = "${buildDir}/openapi-generated"
+
+    // versions
+    javaVersion = "11"
+    gradleVersion = "5.6.2"
+    openApiVersion = "4.1.3"
+    spotlessVersion = "3.25.0"
+    owaspVersion = "5.2.2"
+    sonarqubeVersion = "2.8"
+    springBootVersion = "2.1.9.RELEASE"
+    springVersion = "5.2.0.RELEASE"
+    javaxAnnotationVersion = "1.3.2"
+    javaxValidationVersion = "2.0.1.Final"
+    jacksonDatabindNullableVersion = "0.2.0"
+    swaggerVersion = "2.9.2"
+    jacksonDatabindVersion = "2.10.0"
+    guavaVersion = "28.1-jre"
+}

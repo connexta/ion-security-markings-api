@@ -1,0 +1,74 @@
+/*
+ * Copyright (c) 2019 Connexta, LLC
+ *
+ * Released under the GNU Lesser General Public License version 3; see
+ * https://www.gnu.org/licenses/lgpl-3.0.html
+ */
+/* Build Script */
+
+plugins {
+    id "org.openapi.generator"  version "${openApiVersion}"
+}
+
+configurations {
+    openApiSpec
+}
+
+dependencies {
+    openApiSpec project(":security-markings-api-rest:security-markings-api-rest-specs")
+    compile "javax.annotation:javax.annotation-api:${javaxAnnotationVersion}"
+    compile "javax.validation:validation-api:${javaxValidationVersion}"
+    compile "org.openapitools:jackson-databind-nullable:${jacksonDatabindNullableVersion}"
+    compile "io.springfox:springfox-swagger2:${swaggerVersion}"
+}
+
+// copy over the openapi spec
+task copyOpenApiSpec(type: Copy) {
+    // need jar from specs project in order to grab the openapi spec
+    dependsOn ":security-markings-api-rest:security-markings-api-rest-specs:assemble"
+
+    from zipTree(configurations.openApiSpec.singleFile).matching {
+        include "openapi/openapi.yaml"
+    }
+    into "$buildDir"
+}
+
+// generate the openapi models
+openApiGenerate {
+
+    inputSpec = "${openApiDir}/openapi.yaml"
+    outputDir = "${openApiGeneratedDir}"
+    generatorName = "spring"
+    validateSpec = false // openapi spec validation happens in the specs projects
+    configOptions = [
+        java11: "true",
+        dateLibrary: "java11",
+        useTags: "true",
+        interfaceOnly: "true",
+        useOptional: "true",
+        booleanGetterPrefix: "is",
+        useBeanValidation: "true",
+        sortParamsByRequiredFlag: "true",
+        performBeanValidation: "false",
+        sourceFolder: "/src/main/java"
+    ]
+    systemProperties = [
+            apis: "false",
+            apiDocs: "false",
+            models: "",
+            modelDocs: "false"
+    ]
+    modelPackage = "${restModelsPackage}"
+}
+// need the openapi spec in order to generate the openapi models
+tasks.openApiGenerate.dependsOn tasks.copyOpenApiSpec
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ["${openApiGeneratedDir}/src"]
+        }
+    }
+}
+// need the openapi models in order to add them to the source set
+compileJava.dependsOn tasks.openApiGenerate
