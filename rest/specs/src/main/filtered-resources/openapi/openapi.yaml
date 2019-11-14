@@ -468,7 +468,7 @@ components:
     excludeFromRollup:
       description: >
         An indicator that an element’s ISM attributes do not contribute to the “rollup” classification of the document
-      type: boolean
+      type: string
       example: false
     exemptFrom:
       description: >
@@ -478,7 +478,7 @@ components:
     externalNotice:
       description: >
         An indicator that an element contains a security-related notice for information NOT contained in document
-      type: boolean
+      type: string
       example: false
     FGIsourceOpen:
       description: >
@@ -493,7 +493,7 @@ components:
     hasApproximateMarkings:
       description: >
         When true, indicates the ISM markings specified are estimated (e.g. system high).
-      type: boolean
+      type: string
       example: true
     id:
       description: >
@@ -513,7 +513,7 @@ components:
     noAggregation:
       description: >
         When true, an indicator that there is no classification by compilation across any combination of portions extracted from the document.
-      type: boolean
+      type: string
       example: true
     nonICmarkings:
       description: >
@@ -548,7 +548,7 @@ components:
     joint:
       description: >
         When true, an indicator that entities in the @ism:ownerProducer attribute are JOINT owners of the resource
-      type: boolean
+      type: string
       example: false
     pocType:
       description: >
@@ -568,7 +568,7 @@ components:
     resourceElement:
       description: >
         This attribute is used to designate which element has the ISM attributes representing the classification for the entire resource. Every document must have at least one element with this indicator as true. It should be rare that a document has more than one. Mainly this would occur in some sort of aggregation schema. In the aggregation case, the first @resourceElement attribute in XML document order is the one used for all constraint rules.
-      type: boolean
+      type: string
       example: true
     SARIdentifier:
       description: >
