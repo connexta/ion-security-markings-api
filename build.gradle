@@ -47,7 +47,7 @@ allprojects {
     targetCompatibility = javaVersion
 
     // specify groupId and version
-    // artifactId is defaulted to the projects/subprojects name, i.e. security-markings-api-rest-specs
+    // artifactId is defaulted to the projects/subprojects name, i.e. security-markings-api-openapi-specs
     group = projectGroupId
     version = projectVersion
 

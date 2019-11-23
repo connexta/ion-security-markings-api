@@ -11,7 +11,7 @@
     <suppress>
         <notes>
             The "security framework" mentioned in this CVE is not applicable to the JARs it was reported against
-            (security-markings-api-rest-specs.jar, security-markings-api-rest-models.jar). The CVE denotes an issue
+            (security-markings-api-openapi-specs.jar, security-markings-api-openapi-models.jar). The CVE denotes an issue
             with hostname verification, however the JARs don't have any hostname (or any server) logic.
         </notes>
         <cve>CVE-2017-18588</cve>

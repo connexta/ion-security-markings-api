@@ -15,19 +15,17 @@ configurations {
 }
 
 dependencies {
-    openApiSpec project(":security-markings-api-rest:security-markings-api-rest-specs")
-    compile project(":security-markings-api-rest:security-markings-api-rest-models")
+    openApiSpec project(":security-markings-api-openapi:security-markings-api-openapi-specs")
     compile "javax.annotation:javax.annotation-api:${javaxAnnotationVersion}"
     compile "javax.validation:validation-api:${javaxValidationVersion}"
     compile "org.openapitools:jackson-databind-nullable:${jacksonDatabindNullableVersion}"
     compile "io.springfox:springfox-swagger2:${swaggerVersion}"
-    compile "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
 }
 
 // copy over the openapi spec
 task copyOpenApiSpec(type: Copy) {
-    // need the jar from the specs project in order to grab the openapi spec
-    dependsOn ":security-markings-api-rest:security-markings-api-rest-specs:assemble"
+    // need jar from specs project in order to grab the openapi spec
+    dependsOn ":security-markings-api-openapi:security-markings-api-openapi-specs:assemble"
 
     from zipTree(configurations.openApiSpec.singleFile).matching {
         include "openapi/openapi.yaml"
@@ -35,8 +33,9 @@ task copyOpenApiSpec(type: Copy) {
     into "$buildDir"
 }
 
-// generate the openapi spring server
+// generate the openapi models
 openApiGenerate {
+
     inputSpec = "${openApiDir}/openapi.yaml"
     outputDir = "${openApiGeneratedDir}"
     generatorName = "spring"
@@ -54,16 +53,14 @@ openApiGenerate {
         sourceFolder: "/src/main/java"
     ]
     systemProperties = [
-            apis: "",
+            apis: "false",
             apiDocs: "false",
-            models: "false",
-            modelDocs: "false",
-            supportingFiles: "ApiUtil.java"
+            models: "",
+            modelDocs: "false"
     ]
-    apiPackage = "${restPackage}.servers.spring"
-    modelPackage = "${restModelsPackage}"
+    modelPackage = "${openapiModelsPackage}"
 }
-// need the openapi spec in order to generate the openapi spring server
+// need the openapi spec in order to generate the openapi models
 tasks.openApiGenerate.dependsOn tasks.copyOpenApiSpec
 
 sourceSets {

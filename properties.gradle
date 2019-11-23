@@ -11,8 +11,8 @@ ext {
 
     //packages
     rootPackage = "com.connexta.security.markings.api"
-    restPackage = "${rootPackage}.rest"
-    restModelsPackage = "${restPackage}.models"
+    openapiPackage = "${rootPackage}.openapi"
+    openapiModelsPackage = "${openapiPackage}.models"
 
     openApiDir = "${buildDir}/openapi"
     openApiGeneratedDir = "${buildDir}/openapi-generated"

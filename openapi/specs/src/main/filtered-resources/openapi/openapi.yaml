@@ -36,11 +36,11 @@ paths:
         - $ref: '#/components/parameters/Accept-Version'
       requestBody:
         required: true
-        description: Contains the security markings to be validated.
+        description: Contains the ISM to be validated.
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SecurityMarkings'
+              $ref: '#/components/schemas/ISM'
       responses:
         '204':
           $ref: '#/components/responses/Valid'
@@ -264,34 +264,17 @@ components:
       description: High level explanation of why the provided markings were deemed invalid.
       type: string
       example: Given classification is above the system high classification
-    SecurityMarkings:
-      description: Security markings.
-      type: object
-      properties:
-        ISM:
-          $ref: '#/components/schemas/ISM'
 # TODO uncomment when we need the support banner markings
-#        BannerMarkings:
-#          $ref: '#/components/schemas/BannerMarkings'
-    InvalidSecurityMarkings:
-      description: Security markings found to be invalid and reason for invalidation.
-      type: object
-      properties:
-        invalidISM:
-            $ref: '#/components/schemas/InvalidISM'
-# TODO uncomment when we need the support banner markings
-#        invalidBannerMarkings:
-#            $ref: '#/components/schemas/InvalidBannerMarkings'
-#    BannerMarkings:
-#      description: Banner markings string, delimited by '//'
+#    Banner:
+#      description: Banner markings string.
 #      type: string
 #      example: U//FOUO
-#    InvalidBannerMarkings:
-#      description: Banner markings string, delimited by '//', and reson for invalidation
+#    InvalidBanner:
+#      description: Banner markings string and reason for invalidation.
 #      type: object
 #      properties:
-#        bannerMarkings:
-#          $ref: '#/components/schemas/BannerMarkings'
+#        banner:
+#          $ref: '#/components/schemas/Banner'
 #        reasonForInvalidation:
 #          $ref: '#/components/schemas/ReasonForInvalidation'
 

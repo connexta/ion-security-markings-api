@@ -15,13 +15,13 @@ configurations {
 }
 
 dependencies {
-    openApiSpec project(":security-markings-api-rest:security-markings-api-rest-specs")
+    openApiSpec project(":security-markings-api-openapi:security-markings-api-openapi-specs")
 }
 
 // copy over the openapi spec
 task copyOpenApiSpec(type: Copy) {
     // need jar from specs project in order to grab the openapi spec
-    dependsOn ":security-markings-api-rest:security-markings-api-rest-specs:assemble"
+    dependsOn ":security-markings-api-openapi:security-markings-api-openapi-specs:assemble"
 
     from zipTree(configurations.openApiSpec.singleFile).matching {
         include "openapi/openapi.yaml"
